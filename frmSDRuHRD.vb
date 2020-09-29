@@ -1,7 +1,7 @@
 ﻿Public Class frmSDRuHRD
     Public boolSDRUnoCommPtSet As Boolean
     Public boolHRDCommPtSet As Boolean
-    Public HKCUProgramKey As String = "Software\AF5LA\SDRUnoHDR"
+    Public HKCUProgramKey As String = "Software\AF5LA\SDRuHDR"
 
     Private Sub frmSDRuHRD_Load(sender As Object, e As EventArgs) Handles MyBase.Load
 
@@ -13,6 +13,18 @@
             Me.cboHRDCommPort.Items.Add(portName)
             Me.cboSDRUnoCommPort.Items.Add(portName)
         Next
+
+
+        intHRDWrtDelay = 50
+        'Deflt = intHRDWrtDelay
+        'objRet = GetReg_HKCU_Value(HKCUProgramKey, "HRDWrtDelay", Deflt)
+        'If objRet Is Nothing Then
+
+        'Else
+        '    intHRDWrtDelay = objRet
+        'End If
+
+
         Deflt = Nothing
         objRet = GetReg_HKCU_Value(HKCUProgramKey, "SDRUnoCommPort", Deflt)
         If objRet Is Nothing Then
@@ -65,5 +77,36 @@
             NextCommTimer.Enabled = True
         End If
 
+    End Sub
+
+    Private Sub HelpToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles HelpToolStripMenuItem.Click
+
+    End Sub
+
+    Private Sub ExitToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ExitToolStripMenuItem.Click
+        Application.Exit()
+    End Sub
+
+    Private Sub AboutToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles AboutToolStripMenuItem.Click
+        Dim Result As MsgBoxResult
+        Dim strMsg As String
+        Dim strPrompt As String
+        strPrompt = "SDRUno <> HRD"
+        strMsg = "SDRuHRD.exe Version " & Application.ProductVersion
+        Result = MsgBox(strMsg, MsgBoxStyle.OkOnly, strPrompt)
+    End Sub
+
+    Private Sub InstructionsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles InstructionsToolStripMenuItem.Click
+        Dim strPath As String
+        Dim strDblQuote As String
+        Dim intRet As Integer
+        strDblQuote = ControlChars.Quote
+        strPath = Application.StartupPath
+        strPath = strPath & "\Instructions.pdf"
+        Debug.Print(strPath)
+        strPath = strDblQuote & strPath & strDblQuote
+        strPath = "cmd /c " & strPath
+        Debug.Print(strPath)
+        intRet = Shell(strPath, AppWinStyle.Hide)
     End Sub
 End Class

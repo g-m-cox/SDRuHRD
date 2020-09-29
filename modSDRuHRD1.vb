@@ -15,6 +15,7 @@ Module modSDRuHRD1
     Public strExMsg As String
     Public strFreq As String
     Public strMode As String
+    Public intHRDWrtDelay As Integer
 
 
 
@@ -22,7 +23,7 @@ Module modSDRuHRD1
     Public Sub SyncRadios()
         Dim strStatus As String
         Dim strOldStatus As String
-
+        Dim intLength As Integer
 
         Try
             If Not OpenPorts() Then
@@ -48,8 +49,8 @@ Module modSDRuHRD1
                 strMode = Mid(strStatus, 30, 1)
 
                 If WriteNewStatus(frmSDRuHRD.SerialPortHRD, "FA" & strFreq, strExMsg) Then
-                    'HRD needs 2 seconds to complete
-                    MyThread.Sleep(2000)
+                    'HRD needs time to complete
+                    MyThread.Sleep(intHRDWrtDelay)
                 Else
                     frmSDRuHRD.txtErrMsg.Text = "Failed to write Frequency to HRD " & strExMsg
                     Return
@@ -58,8 +59,7 @@ Module modSDRuHRD1
 
                 If WriteNewStatus(frmSDRuHRD.SerialPortHRD, "MD" & strMode, strExMsg) Then
                     frmSDRuHRD.txtSDRuLastRcvd.Text = strStatus
-                    MyThread.Sleep(2000) 'HRD needs 2 seconds to complete
-                    Return
+                    MyThread.Sleep(intHRDWrtDelay) 'HRD needs time to complete
                 Else
                     frmSDRuHRD.txtErrMsg.Text = "Failed to write Mode to HRD " & strExMsg
                     Return
@@ -68,9 +68,19 @@ Module modSDRuHRD1
                 frmSDRuHRD.txtSDRuLastRcvd.Text = strStatus
                 frmSDRuHRD.txtErrMsg.Text = ""
                 'Update HRDLastReceived to reflect the new change:
-                For i = 1 To 2 'Read twice to flush old data out of HRD
+                For i = 1 To 20 'Read until HRD reports new Freq and Mode values
                     strStatus = GetStatusStr(frmSDRuHRD.SerialPortHRD)
-                    MyThread.Sleep(1000)
+                    If (Len(strStatus) <> 37) Then
+                        frmSDRuHRD.txtErrMsg.Text = "Invalid reply from HRD Comm Port = " & strStatus
+                    Else
+                        frmSDRuHRD.txtErrMsg.Text = ""
+                        If Mid(strStatus, 3, 11) = strFreq And Mid(strStatus, 30, 1) = strMode Then
+                            'HRD new status is up to date
+                            Debug.Print("HRD For-Next loop count = " & i.ToString)
+                            Exit For
+                        End If
+                    End If
+                    MyThread.Sleep(intHRDWrtDelay)
                 Next
                 If (Len(strStatus) <> 37) Then
                     frmSDRuHRD.txtErrMsg.Text = "Invalid reply from HRD Comm Port = " & strStatus
@@ -85,8 +95,13 @@ Module modSDRuHRD1
             'Get HRD status string
             strStatus = ""
             strStatus = GetStatusStr(frmSDRuHRD.SerialPortHRD)
-            If (Len(strStatus) <> 37) Then
-                'frmSDRuHRD.txtHRDLastRcvd.Text = strStatus
+            intLength = Len(strStatus)
+            If intLength <> 37 Then
+                If intLength = 39 Then
+                    'Returns two spaces in front of the status.
+                    'Happens evry time when SDRUno frequency changes HRD frequency
+                    Return
+                End If
                 frmSDRuHRD.txtErrMsg.Text = "Invalid reply from HRD Comm Port = " & strStatus
                 Return
             Else
@@ -101,7 +116,7 @@ Module modSDRuHRD1
                 strMode = Mid(strStatus, 30, 1)
 
                 If WriteNewStatus(frmSDRuHRD.SerialPortSDRUno, "FA" & strFreq, strExMsg) Then
-                    System.Threading.Thread.Sleep(2000)
+                    MyThread.Sleep(intHRDWrtDelay)
                 Else
                     frmSDRuHRD.txtErrMsg.Text = "Failed to write Frequency to SDRUno " & strExMsg
                     Return
@@ -110,7 +125,6 @@ Module modSDRuHRD1
 
                 If WriteNewStatus(frmSDRuHRD.SerialPortSDRUno, "MD" & strMode, strExMsg) Then
                     frmSDRuHRD.txtHRDLastRcvd.Text = strStatus
-                    'System.Threading.Thread.Sleep(2000)
                     Return
                 Else
                     frmSDRuHRD.txtErrMsg.Text = "Failed to write Mode to SDRUno " & strExMsg
@@ -128,7 +142,7 @@ Module modSDRuHRD1
 
 
     End Sub
-    Private Function WriteNewStatus(SrlPt As System.IO.Ports.SerialPort, NewStatus As String, exMsg As String) As Boolean
+    Private Function WriteNewStatus(SrlPt As System.IO.Ports.SerialPort, NewStatus As String, ByRef exMsg As String) As Boolean
         Try
             SrlPt.WriteLine(NewStatus)
             MyThread.Sleep(100)
@@ -148,7 +162,12 @@ Module modSDRuHRD1
         SrlPt.NewLine = ";"
         SrlPt.WriteLine("IF")
         MyThread.Sleep(200)
-        GetStatusStr = SrlPt.ReadLine
+        Try
+            GetStatusStr = SrlPt.ReadLine
+        Catch ex As Exception
+            GetStatusStr = "Error : " & ex.Message
+        End Try
+
 
     End Function
 
