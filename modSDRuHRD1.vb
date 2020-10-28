@@ -195,15 +195,23 @@ Module modSDRuHRD1
     End Function
 
     Private Function OpenHRDPort() As Boolean
+        Dim ErrStr As String = ""
+        Dim Value As Object = ""
         frmSDRuHRD.SerialPortHRD.PortName = strHRDPortName
         frmSDRuHRD.SerialPortHRD.BaudRate = intHRDBaudRate
         Try
             frmSDRuHRD.SerialPortHRD.Open()
         Catch ex As UnauthorizedAccessException
             frmSDRuHRD.txtErrMsg.Text = "HRD Serial Port Error " & ex.Message
+            If Not SetReg_HKCU_Value(frmSDRuHRD.HKCUProgramKey, frmSDRuHRD.HRDValueName, Value, ErrStr) Then
+                frmSDRuHRD.txtErrMsg.Text = frmSDRuHRD.txtErrMsg.Text & vbCrLf & "SetReg_HKCU_Value Error=" & ErrStr
+            End If
             Return False
         Catch ex As ArgumentException
             frmSDRuHRD.txtErrMsg.Text = "HRD Serial Port Error " & ex.Message
+            If Not SetReg_HKCU_Value(frmSDRuHRD.HKCUProgramKey, frmSDRuHRD.HRDValueName, Value, ErrStr) Then
+                frmSDRuHRD.txtErrMsg.Text = frmSDRuHRD.txtErrMsg.Text & vbCrLf & "SetReg_HKCU_Value Error=" & ErrStr
+            End If
             Return False
         End Try
         frmSDRuHRD.txtErrMsg.Text = ""
@@ -212,15 +220,23 @@ Module modSDRuHRD1
     End Function
 
     Private Function OpenSDRUnoPort() As Boolean
+        Dim ErrStr As String = ""
+        Dim Value As Object = ""
         frmSDRuHRD.SerialPortSDRUno.PortName = strSDRunoPortName
         frmSDRuHRD.SerialPortSDRUno.BaudRate = intSDRUnoBaudRate
         Try
             frmSDRuHRD.SerialPortSDRUno.Open()
         Catch ex As UnauthorizedAccessException
             frmSDRuHRD.txtErrMsg.Text = "SDRUno Serial Port Error " & ex.Message
+            If Not SetReg_HKCU_Value(frmSDRuHRD.HKCUProgramKey, frmSDRuHRD.SDRunoValueName, Value, ErrStr) Then
+                frmSDRuHRD.txtErrMsg.Text = frmSDRuHRD.txtErrMsg.Text & vbCrLf & "SetReg_HKCU_Value Error=" & ErrStr
+            End If
             Return False
         Catch ex As ArgumentException
             frmSDRuHRD.txtErrMsg.Text = "SDRUno Serial Port Error " & ex.Message
+            If Not SetReg_HKCU_Value(frmSDRuHRD.HKCUProgramKey, frmSDRuHRD.SDRunoValueName, Value, ErrStr) Then
+                frmSDRuHRD.txtErrMsg.Text = frmSDRuHRD.txtErrMsg.Text & vbCrLf & "SetReg_HKCU_Value Error=" & ErrStr
+            End If
             Return False
         End Try
         frmSDRuHRD.txtErrMsg.Text = ""

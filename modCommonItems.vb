@@ -34,7 +34,7 @@ Module modCommonItems
             Return DefltValue
         Else
             objRet = regKey.GetValue(ValueName)
-            If objRet Is Nothing Then
+            If (objRet Is Nothing) Or (objRet.ToString = "") Then
                 If Ask Then
                     strRet = InputBox("New Registry Value", ValueName, DefltValue.ToString)
                     If strRet = "" Then
@@ -64,6 +64,32 @@ Module modCommonItems
         'regKey.SetValue("CustomLabels", strngValue, RegistryValueKind.MultiString)
 
 
+
+    End Function
+
+
+    Public Function SetReg_HKCU_Value(SubKey As String, ValueName As String, Value As Object, ByRef ErrStr As String) As Boolean
+        'SubKey like: "Software\Microsoft\TestApp\1.0"
+        Dim regKey As RegistryKey
+        Dim keyTop As RegistryKey = Registry.CurrentUser
+        Dim strRet As String
+        Dim objRet As Object
+        Try
+            ErrStr = ""
+            regKey = keyTop.OpenSubKey(SubKey, True)
+            If regKey Is Nothing Then
+                regKey = keyTop.CreateSubKey(SubKey)
+                regKey.SetValue(ValueName, Value)
+                Return True
+            Else
+                regKey.SetValue(ValueName, Value)
+                Return True
+            End If
+
+        Catch ex As ArgumentException
+            ErrStr = "Set " & ValueName & " Failed " & ex.ToString
+            Return False
+        End Try
 
     End Function
 

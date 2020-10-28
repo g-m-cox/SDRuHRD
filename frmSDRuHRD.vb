@@ -2,31 +2,29 @@
     Public boolSDRUnoCommPtSet As Boolean
     Public boolHRDCommPtSet As Boolean
     Public HKCUProgramKey As String = "Software\AF5LA\SDRuHDR"
+    Public SDRunoValueName As String = "SDRUnoCommPort"
+    Public HRDValueName As String = "HRDCommPort"
 
     Private Sub frmSDRuHRD_Load(sender As Object, e As EventArgs) Handles MyBase.Load
 
         Dim Deflt As Object
         Dim objRet As Object
 
-
         For Each portName In My.Computer.Ports.SerialPortNames
             Me.cboHRDCommPort.Items.Add(portName)
             Me.cboSDRUnoCommPort.Items.Add(portName)
         Next
 
-
         intHRDWrtDelay = 50
         'Deflt = intHRDWrtDelay
         'objRet = GetReg_HKCU_Value(HKCUProgramKey, "HRDWrtDelay", Deflt)
         'If objRet Is Nothing Then
-
         'Else
         '    intHRDWrtDelay = objRet
         'End If
 
-
         Deflt = Nothing
-        objRet = GetReg_HKCU_Value(HKCUProgramKey, "SDRUnoCommPort", Deflt)
+        objRet = GetReg_HKCU_Value(HKCUProgramKey, SDRunoValueName, Deflt)
         If objRet Is Nothing Then
             boolSDRUnoCommPtSet = False
         Else
@@ -35,18 +33,18 @@
         End If
 
         Deflt = Nothing
-        objRet = GetReg_HKCU_Value(HKCUProgramKey, "HRDCommPort", Deflt)
+        objRet = GetReg_HKCU_Value(HKCUProgramKey, HRDValueName, Deflt)
         If objRet Is Nothing Then
             boolHRDCommPtSet = False
         Else
             Me.cboHRDCommPort.Text = objRet.ToString
             boolHRDCommPtSet = True
         End If
+
         If boolSDRUnoCommPtSet And boolHRDCommPtSet Then
+            'All ports set, lets run!
             Me.NextCommTimer.Enabled = True
         End If
-
-
 
     End Sub
 
@@ -59,7 +57,7 @@
         Dim objRet As Object
         strHRDPortName = Me.cboHRDCommPort.SelectedItem
         Deflt = strHRDPortName
-        objRet = GetReg_HKCU_Value(HKCUProgramKey, "HRDCommPort", Deflt)
+        objRet = GetReg_HKCU_Value(HKCUProgramKey, HRDValueName, Deflt)
         boolHRDCommPtSet = True
         If boolSDRUnoCommPtSet And boolHRDCommPtSet Then
             NextCommTimer.Enabled = True
@@ -71,7 +69,7 @@
         Dim objRet As Object
         strSDRunoPortName = cboSDRUnoCommPort.SelectedItem
         Deflt = strSDRunoPortName
-        objRet = GetReg_HKCU_Value(HKCUProgramKey, "SDRUnoCommPort", Deflt)
+        objRet = GetReg_HKCU_Value(HKCUProgramKey, SDRunoValueName, Deflt)
         boolSDRUnoCommPtSet = True
         If boolSDRUnoCommPtSet And boolHRDCommPtSet Then
             NextCommTimer.Enabled = True
